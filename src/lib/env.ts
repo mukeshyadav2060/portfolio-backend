@@ -17,6 +17,8 @@ const schema = z.object({
   /** Public base URL of this backend, used to build absolute upload URLs. */
   PUBLIC_URL: z.string().default("http://localhost:4000"),
   UPLOAD_DIR: z.string().default("./data/uploads"),
+  /** Set on Vercel (by connecting a Blob store) to keep uploads in Vercel Blob instead of on disk. */
+  BLOB_READ_WRITE_TOKEN: z.string().optional(),
   GITHUB_TOKEN: z.string().optional(),
   /** Optional: forward contact messages by email through Resend. */
   RESEND_API_KEY: z.string().optional(),

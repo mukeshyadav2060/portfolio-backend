@@ -12,10 +12,12 @@
     "db:migrate": "tsx --env-file-if-exists=.env.local scripts/migrate.mts",
     "db:seed": "tsx --env-file-if-exists=.env.local scripts/seed.mts",
     "db:studio": "drizzle-kit studio",
+    "db:push-local": "tsx --env-file-if-exists=.env.local scripts/push-local.mts",
     "setup": "npm run db:migrate && npm run db:seed"
   },
   "dependencies": {
     "@libsql/client": "^0.18.0",
+    "@vercel/blob": "^2.8.2",
     "drizzle-orm": "^0.45.4",
     "jose": "^6.2.13",
     "next": "16.4.3",

@@ -47,7 +47,8 @@ Locally, the database is a SQLite file at `data/portfolio.db` and uploads go to
 | `FRONTEND_URL` | Yes | Frontend base URL, where revalidation webhooks are sent |
 | `REVALIDATE_SECRET` | Yes | Shared with the frontend. Must match exactly. |
 | `PUBLIC_URL` | Yes | Public URL of this backend, used to build absolute upload URLs |
-| `UPLOAD_DIR` | No | Upload directory (default `./data/uploads`) |
+| `UPLOAD_DIR` | No | Local upload directory (default `./data/uploads`), used when Blob is not set |
+| `BLOB_READ_WRITE_TOKEN` | Production | Vercel Blob token. When set, uploads go to Blob. Added automatically when you connect a Blob store to the Vercel project. |
 | `GITHUB_TOKEN` | No | Enables the contribution calendar. A classic token with `read:user` covers public activity; add `repo` to include private work. |
 | `RESEND_API_KEY` | No | Forward contact messages by email |
 | `CONTACT_NOTIFY_EMAIL` | No | Where forwarded contact messages go |
@@ -68,6 +69,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 | `npm run db:migrate` | Apply migrations in `drizzle/` to `DATABASE_URL` |
 | `npm run db:seed` | Seed content (`-- --force` re-seeds over existing data) |
 | `npm run setup` | Migrate and seed |
+| `npm run db:push-local` | Copy the local database to Turso and its uploaded files to Vercel Blob, rewriting file URLs. Replaces all content in the target. |
 | `npm run db:studio` | Open Drizzle Studio |
 | `npm run lint` / `npm run typecheck` | ESLint and TypeScript checks |
 
@@ -92,14 +94,20 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
    DATABASE_URL=libsql://<db>-<org>.turso.io DATABASE_AUTH_TOKEN=<token> npm run setup
    ```
 
+   If you already have content in a local database, copy it across instead of seeding:
+   run `npm run db:migrate`, then `npm run db:push-local` (needs the Blob token from step 4).
+
 2. **Import** this repository in Vercel. The framework preset is **Next.js** and the default
    build settings work as they are.
 3. **Environment variables.** Add the variables above. In production `FRONTEND_URL` and
    `CORS_ORIGINS` are the frontend's URL and `PUBLIC_URL` is this backend's URL.
-4. **Uploads.** `/api/v1/admin/upload` writes to the local disk, and Vercel's file system
-   is temporary. Files uploaded on Vercel disappear. Before uploading images in production,
-   switch the upload route (`src/app/api/v1/admin/upload/route.ts`) to object storage such as
-   Vercel Blob, S3 or Cloudflare R2.
+4. **Uploads.** In the Vercel project, open **Storage → Create → Blob**, choose public access
+   and connect it to this project. That adds `BLOB_READ_WRITE_TOKEN`, and uploads then go to
+   Blob. Vercel's own file system is temporary, so uploads would otherwise be lost.
+5. **Region.** Set **Settings → Functions → Function Region** to the region closest to the
+   Turso database.
+6. **Keep-alive.** `vercel.json` runs a daily cron job that calls `/api/health`. That runs a
+   query, which stops Turso's free plan from archiving the database when the site is quiet.
 
 ## Project structure
 
